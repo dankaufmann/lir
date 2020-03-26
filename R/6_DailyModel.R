@@ -280,7 +280,7 @@ Result <- createLPPlot(Reg.SNB.sptec, Reg.SNB.ir, 0.75, NormInit, H, gap, c(-20,
 # Grafiken Zins und Wechselkurs SNB
 # --------------------------------------------------------------
 Result <- createLPPlot(Reg.SNB.xr, Reg.SNB.ir, 0.75, NormInit, H, gap, c(-10, 2), 
-                       "Wechselkurs (In %)", 
+                       "Nomineller Wechselkurs (In %)", 
                        "Tage nach einer 0.75 pp Anhebung des Schweizer Leitzinses", 
                        "../Resultate/WechselkursSNB_D", figWidth, figHeight)
 
@@ -293,20 +293,20 @@ Result <- createLPPlot(Reg.SNB.ir, Reg.SNB.ir, 0.75, NormInit, H, gap, c(0, 2),
 # Grafiken Zins und Wechselkurs EZB
 # --------------------------------------------------------------
 Result <- createLPPlot(Reg.ECB.xr, Reg.ECB.irs, 0.75, NormInit, H, gap, c(10, -2), 
-                       "Wechselkurs (In %)", 
-                       "Tage nach einer 0.75 pp Anhebung des Eurozone Leitzinses", 
+                       "Nomineller Wechselkurs (In %)", 
+                       "Tage nach einer 0.75 pp Anhebung des Leitzinses in der Eurozone", 
                        "../Resultate/WechselkursEZB_D", figWidth, figHeight)
 
 Result <- createLPPlot(Reg.ECB.ir, Reg.ECB.irs, 0.75, NormInit, H, gap, c(0, 2),
                        "3M CHF Libor (In pp)", 
-                       "Tage nach einer 0.75 pp Anhebung des Eurozone Leitzinses", 
+                       "Tage nach einer 0.75 pp Anhebungs de Leitzinses in der Eurozone", 
                        "../Resultate/ZinsEZB_D", figWidth, figHeight)
 
 # --------------------------------------------------------------
 # Grafiken für 1W Shock
 # --------------------------------------------------------------
 Result <- createLPPlot(Reg.SNB1W.xr, Reg.SNB1W.ir, 0.75, NormInit, H, gap, c(-10, 2), 
-                       "Wechselkurs (In %)", 
+                       "Nomineller Wechselkurs (In %)", 
                        "Tage nach einer 0.75 pp Anhebung des Schweizer Leitzinses", 
                        "../Resultate/WechselkursSNB1W_D", figWidth, figHeight)
 
@@ -324,7 +324,7 @@ Result <- createLPPlot(Reg.SNB1W.sp, Reg.SNB1W.ir, 0.75, NormInit, H, gap, c(-10
 # Grafiken für 6M Shock
 # --------------------------------------------------------------
 Result <- createLPPlot(Reg.SNB6M.xr, Reg.SNB6M.ir, 0.75, NormInit, H, gap, c(-10, 2), 
-                       "Wechselkurs (In %)", 
+                       "Nomineller Wechselkurs (In %)", 
                        "Tage nach einer 0.75 pp Anhebung des Schweizer Leitzinses", 
                        "../Resultate/WechselkursSNB6M_D", figWidth, figHeight)
 

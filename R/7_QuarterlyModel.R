@@ -100,7 +100,7 @@ Reg.SNB.ir <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, dep
 # Note: Scale used from event study
 Result <- createLPPlot(Reg.SNB.ir, Reg.SNB.ir, 0.75, NormInit, H, gap, c(-5, 2), 
                        "Zins (In %)",
-                       "Quartale nach 0.75 pp Anhebung des Schweizer Leitzinses", 
+                       "Quartale nach einer 0.75 pp Anhebung des Schweizer Leitzinses", 
                        "../Resultate/Zins_SNB_Q", figWidth, figHeight)
 
 # --------------------------------------------------------------
@@ -115,7 +115,7 @@ for (i in 1:length(GDPLabs)){
   # Note: Scale used from event study
   Result <- createLPPlot(Reg.SNB.gdp, Reg.SNB.ir, 0.75, NormInit, H, gap, c(-5, 2), 
                          paste(GDPLabs[i], " (In %)", sep = ""), 
-                         "Quartale nach 0.75 pp Anhebung des Schweizer Leitzinses", 
+                         "Quartale nach einer 0.75 pp Anhebung des Schweizer Leitzinses", 
                          paste("../Resultate/BIP_", i, "_SNB_Q", sep = ""), figWidth, figHeight)
   
 }
@@ -130,7 +130,7 @@ Reg.SNB.cpi <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, de
 # Note: Scale used from event study
 Result <- createLPPlot(Reg.SNB.cpi, Reg.SNB.ir, 0.75, NormInit, H, gap, c(-5, 2), 
                        "Konsumentenpreise (In %)",
-                       "Quartale nach 0.75 pp Anhebung des Schweizer Leitzinses", 
+                       "Quartale nach einer 0.75 pp Anhebung des Schweizer Leitzinses", 
                        "../Resultate/Konsumentenpreise_SNB_Q", figWidth, figHeight)
 
 #-------------------------------------------------------------------------------------
