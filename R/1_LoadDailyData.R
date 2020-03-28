@@ -25,8 +25,8 @@ endExport   <- as.Date("2020-03-31")   # Enddatum für Export
 # SNB Entscheide
 # ------------------------------------------------------------------------
 SNBData <- read.xlsx("../Daten/LagebeurteilungD.xlsx", sheetName = "Data", startRow = 1)
-SNBLB <- data.frame(as.Date(SNBData$Date), SNBData$Official, SNBData$Exceptional)
-colnames(SNBLB) <- c("Date", "LB", "IrrgLB")
+SNBLB <- data.frame(as.Date(SNBData$Date), SNBData$Official, SNBData$Exceptional, SNBData$Time, SNBData$Surprise)
+colnames(SNBLB) <- c("Date", "LB", "IrrgLB", "Time", "Surprise")
 SNBLB <- SNBLB[order(SNBLB$Date),]
 
 # ------------------------------------------------------------------------

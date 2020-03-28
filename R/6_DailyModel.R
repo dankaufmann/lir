@@ -46,10 +46,6 @@ Data <- AllData
 # Missing values auffüllen
 Data  <- na.locf(Data, na.rm = FALSE, maxgap = 3)   # Note fills missing values with previous value but only up to 3 days
 
-# Calculate risk premia
-Data$RPIND  <- Data$IND8Y - Data$EID8Y  - Data$FORAAA8Y
-Data$RPBANK <- Data$BANK8Y - Data$EID8Y  - Data$FORAAA8Y
-
 # Calculate error correction term
 # Schätzung i = i* + eps (für Monatsmodell, gemäss Theorie)
 CointReg <- lm(LIB1W~LIBEUR1W, data = subset(Data, Date>= myStart & Date <= myEnd))
@@ -57,130 +53,105 @@ summary(CointReg)
 Data$Diff <- Data$LIB1W - CointReg$coefficients[1] -  CointReg$coefficients[2]*Data$LIBEUR1W
 
 # Controls and lags for all models
-Yc       <- c("ESTXXClose",  "EURUSD", "LIBEUR3M")
-conLog   <- c(TRUE,         TRUE,       FALSE)
+Yc       <- c("")
+conLog   <- c()
+Zc       <- c("ESTXXClose",  "EURUSD", "LIBEUR3M")
+exoLog   <- c(TRUE,          TRUE,      FALSE)
 Ec       <- c("")
 lagShocks <- FALSE
 H        <- 15
 gap      <- 2
-P        <- 2
+P        <- 1
 NormInit <- FALSE
 depLag   <- TRUE
 
 # --------------------------------------------------------------
 # Reaktion der Aktienpreise
 # --------------------------------------------------------------
-MainEv  <- "LB"        # LB or ECBDec
 e       <- "ShocksCH" # ShocksLib or ShockECB3M
+MainEv  <- "LB"        # LB or ECBDec
+
 Y       <- "SPI"
 depLog  <- TRUE
-Reg.SNB.sp <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag, Data, myStart, myEnd)
+Reg.SNB.sp <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "SPIRaw"
 depLog  <- TRUE
-Reg.SNB.spraw <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.spraw <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "SPIInd"
 depLog  <- TRUE
-Reg.SNB.spind <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.spind <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "SPICons"
 depLog  <- TRUE
-Reg.SNB.spcons <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.spcons <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "SPIHealt"
 depLog  <- TRUE
-Reg.SNB.spheal <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.spheal <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "SPICSer"
 depLog  <- TRUE
-Reg.SNB.spcser <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.spcser <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "SPICom"
 depLog  <- TRUE
-Reg.SNB.spcom <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.spcom <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "SPIUtil"
 depLog  <- TRUE
-Reg.SNB.sputil <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.sputil <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "SPIFin"
 depLog  <- TRUE
-Reg.SNB.spfin <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.spfin <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "SPITech"
 depLog  <- TRUE
-Reg.SNB.sptec <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.sptec <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
 
 # --------------------------------------------------------------
 # Reaktion des Wechselkurses und der Zinsen
 # --------------------------------------------------------------
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "NEURR"
 depLog  <- TRUE
-Reg.SNB.xr <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.xr <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
-e       <- "ShocksCH" # ShocksLib or ShockECB3M
 Y       <- "LIB3M"
 depLog  <- FALSE
-Reg.SNB.ir <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB.ir <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
 e       <- "ShocksLib1W" # ShocksLib or ShockECB3M
 Y       <- "NEURR"
 depLog  <- TRUE
-Reg.SNB1W.xr <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB1W.xr <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
 e       <- "ShocksLib1W" # ShocksLib or ShockECB3M
 Y       <- "LIB1W"
 depLog  <- FALSE
-Reg.SNB1W.ir <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB1W.ir <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
 e       <- "ShocksLib1W" # ShocksLib or ShockECB3M
 Y       <- "SPI"
 depLog  <- TRUE
-Reg.SNB1W.sp <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB1W.sp <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
 e       <- "ShocksLib6M" # ShocksLib or ShockECB3M
 Y       <- "NEURR"
 depLog  <- TRUE
-Reg.SNB6M.xr <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB6M.xr <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
 e       <- "ShocksLib6M" # ShocksLib or ShockECB3M
 Y       <- "LIB6M"
 depLog  <- FALSE
-Reg.SNB6M.ir <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB6M.ir <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
-MainEv  <- "LB"        # LB or ECBDec
 e       <- "ShocksLib6M" # ShocksLib or ShockECB3M
 Y       <- "SPI"
 depLog  <- TRUE
-Reg.SNB6M.sp <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.SNB6M.sp <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
 # --------------------------------------------------------------
 # Reaktion auf EZB Shock
@@ -189,39 +160,20 @@ MainEv  <- "ECBDec"        # LB or ECBDec
 Y       <- "NEURR"
 depLog  <- TRUE
 e       <- "ShocksEUR" # ShocksLib or ShockECB3M
-Reg.ECB.xr <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
-
-MainEv  <- "ECBDec"        # LB or ECBDec
-Y       <- "NEURR"
-depLog  <- TRUE
-e       <- "ShockECB1W" # ShocksLib or ShockECB3M
-Reg.ECB1W.xr <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.ECB.xr <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
 MainEv  <- "ECBDec"        # LB or ECBDec
 Y       <- "LIB3M"
 depLog  <- FALSE
-e       <- "ShocksEUR" # ShocksLib or ShockECB3M
-Reg.ECB.ir <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
-
-MainEv  <- "ECBDec"        # LB or ECBDec
-Y       <- "LIB1W"
-depLog  <- FALSE
-e       <- "ShockECB1W" # ShocksLib or ShockECB3M
-Reg.ECB1W.ir <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.ECB.ir <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
 MainEv  <- "ECBDec"        # LB or ECBDec
 Y       <- "LIBEUR3M_lead"
 Yc      <- c("")
+Zc      <- c("")
+exoLog  <- c()
 depLog  <- FALSE
-e       <- "ShocksEUR" # ShocksLib or ShockECB3M
-Reg.ECB.irs <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
-
-MainEv  <- "ECBDec"        # LB or ECBDec
-Y       <- "LIBEUR1W_lead"
-Yc      <- c("")
-depLog  <- FALSE
-e       <- "ShockECB1W" # ShocksLib or ShockECB3M
-Reg.ECB1W.irs <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag,Data, myStart, myEnd)
+Reg.ECB.irs <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
 # --------------------------------------------------------------
 # Grafiken Aktienpreise
@@ -338,6 +290,13 @@ Result <- createLPPlot(Reg.SNB6M.sp, Reg.SNB6M.ir, 0.75, NormInit, H, gap, c(-10
                        "Tage nach einer 0.75 pp Anhebung des Schweizer Leitzinses", 
                        "../Resultate/AktienpreiseSNB6M_D", figWidth, figHeight)
 
+
+# --------------------------------------------------------------
+# Resultate zeigen um Scale für Quartalsstudie zu bestimmen
+# --------------------------------------------------------------
+print(Reg.SNB.ir)
+
+# Ungefähr 0.2 - 0.25. Daher Mit 3 multiplizieren
 
 #-------------------------------------------------------------------------------------
 # END OF FILE

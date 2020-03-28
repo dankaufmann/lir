@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1585333014473.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "99699742",
+    "lastKnownWriteTime" : 1585390110,
+    "last_content_update" : 1585390110325,
+    "path" : "C:/Users/daenu/switchdrive/Mandates/Bankierverenigung/Codes/lir/R/1_LoadDailyData.R",
+    "project_path" : "1_LoadDailyData.R",
+    "properties" : {
+        "cursorPosition" : "52,0",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -74,12 +74,13 @@ createLPPlot <- function(Resp, NormResp, NormVal, NormInit, H, gap, myYlim, titl
   Var.plot <- Var.plot/(Resp.norm^2)*NormVal^2
 
   # Exchange rate: Compute impulse responses
-  Plot.plot <- data.frame(0:H, Resp.plot, Resp.plot+1.96*sqrt(Var.plot), Resp.plot-1.96*sqrt(Var.plot))
-  colnames(Plot.plot) <- c("Tage", "Mittelwert", "Konfidenzintervall1", "Konfidenzintervall2")
+  Plot.plot <- data.frame(0:H, Resp.plot, Resp.plot+1.96*sqrt(Var.plot), Resp.plot-1.96*sqrt(Var.plot), Resp.plot+1.64*sqrt(Var.plot), Resp.plot-1.64*sqrt(Var.plot))
+  colnames(Plot.plot) <- c("Tage", "Mittelwert", "Konfidenzintervall1", "Konfidenzintervall2", "Konfidenzintervall1b", "Konfidenzintervall2b")
   
   # Make a plot
   g <- ggplot(Plot.plot, aes(Tage))
   g <- g + geom_ribbon(aes_string(ymin = "Konfidenzintervall2" , ymax = "Konfidenzintervall1"), fill= "gray25", alpha=3/10)
+  g <- g + geom_ribbon(aes_string(ymin = "Konfidenzintervall2b" , ymax = "Konfidenzintervall1b"), fill= "gray25", alpha=5/10)
   g <- g + theme_minimal() + xlab("") + ggtitle(title)+theme(plot.title = element_text(size = 10))+ylab("")+
     theme(legend.title=element_blank()) + scale_x_continuous(breaks=seq(0, H, gap))
   g <- g + expand_limits(y=myYlim)
@@ -94,7 +95,7 @@ createLPPlot <- function(Resp, NormResp, NormVal, NormInit, H, gap, myYlim, titl
   
 }
 
-EstimLP <- function(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag, Data, myStart, myEnd){
+EstimLP <- function(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd){
 
   # Estimates local projection with HAC robust standard errors
   ResultsReg <- list()
@@ -146,12 +147,28 @@ EstimLP <- function(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLa
       for(i in 1:length(Yc)){
         for(p in 1:P){
           if(conLog[i] == TRUE){
-            Controls[, paste(Yc[i], ".l", p-1, sep = "")] <- (dplyr::lag(log(Data[, Yc[i]]), p-1)-dplyr::lag(log(Data[, Yc[i]]), p))*100
+            Controls[, paste(Yc[i], ".l", p, sep = "")] <- (dplyr::lag(log(Data[, Yc[i]]), p)-dplyr::lag(log(Data[, Yc[i]]), p+1))*100
           }else{
-            Controls[, paste(Yc[i], ".l", p-1, sep = "")] <- dplyr::lag(Data[, Yc[i]], p-1)-dplyr::lag(Data[, Yc[i]], p)  
+            Controls[, paste(Yc[i], ".l", p, sep = "")] <- dplyr::lag(Data[, Yc[i]], p)-dplyr::lag(Data[, Yc[i]], p+1)  
           }
           
-          RegFormula <- paste(RegFormula, paste(Yc[i], ".l", p-1, sep = ""), sep = "+")
+          RegFormula <- paste(RegFormula, paste(Yc[i], ".l", p, sep = ""), sep = "+")
+        }
+      }
+    }
+    
+    # Set up the controls
+    Exogenous <- data.frame(Data$Date)
+    if(Zc[1] != ""){
+      for(i in 1:length(Zc)){
+        for(p in 0:P){
+          if(exoLog[i] == TRUE){
+            Exogenous[, paste(Zc[i], ".l", p, sep = "")] <- (dplyr::lag(log(Data[, Zc[i]]), p)-dplyr::lag(log(Data[, Zc[i]]), p+1))*100
+          }else{
+            Exogenous[, paste(Zc[i], ".l", p, sep = "")] <- dplyr::lag(Data[, Zc[i]], p)-dplyr::lag(Data[, Zc[i]], p+1)  
+          }
+          
+          RegFormula <- paste(RegFormula, paste(Zc[i], ".l", p, sep = ""), sep = "+")
         }
       }
     }
@@ -159,7 +176,7 @@ EstimLP <- function(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLa
     if(depLag == TRUE){
       # Repeat for dependent variable
       LagDepvar <- data.frame(Data$Date)
-      if(P>1){
+     
         for(p in 1:1){
           if(depLog == TRUE){
             LagDepvar[, paste("Y.l", p, sep = "")] <- (dplyr::lag(log(Data[, Y]), p)-dplyr::lag(log(Data[, Y]), p+1))*100
@@ -169,15 +186,15 @@ EstimLP <- function(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLa
           
           RegFormula <- paste(RegFormula, paste("Y.l", p, sep = ""), sep = "+")
         }
-      }  
+
     }
   
     # Collect all in RegData
     if(depLag == TRUE){
-      RegData <- data.frame(depVar, Shocks, Equilib, Controls, LagDepvar)
+      RegData <- data.frame(depVar, Shocks, Equilib, Controls, Exogenous, LagDepvar)
     }
     else{
-      RegData <- data.frame(depVar, Shocks, Equilib, Controls)
+      RegData <- data.frame(depVar, Shocks, Equilib, Controls, Exogenous)
       
     }
     

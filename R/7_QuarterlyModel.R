@@ -68,6 +68,12 @@ SEATSDecomp = seas(ts_ts(CPIFor))
 CPIFor <- SEATSDecomp$series$s11
 CPIFor <- ts_frequency(ts_index(CPIFor, base = "2000-12-01")*100, to = "quarter", aggregate = "mean")
 
+# Calculate error correction term
+# Schätzung i = i* + eps (für Monatsmodell, gemäss Theorie)
+CointReg <- lm(LIB1W~LIBEUR1W, data = ts_span(Schocks,  myStart, myEnd))
+summary(CointReg)
+Schocks$Diff <- Schocks$LIB1W - as.numeric(CointReg$coefficients[1]) -  as.numeric(CointReg$coefficients[2])*Schocks$LIBEUR1W
+
 # Event Data
 AllData <- ts_c(Schocks, GDP, GDPEUR, CPI, CPIFor, PPIFor)
 
@@ -82,38 +88,28 @@ e         <- c("ShocksCH")
 MainEv    <- c("LB")
 lagShocks <- FALSE
 Ec        <- c("")
-Yc      <- c("GDPEUR", "EURUSD", "CPIFor", "PPIFor")
-conLog  <- c(TRUE,     TRUE,     TRUE,     TRUE)
 H         <- 4
 gap       <- 1
 P         <- 2
-NormInit  <- TRUE
-depLag    <- FALSE
+NormInit  <- FALSE
+depLag    <- TRUE
 
-# --------------------------------------------------------------
-# Zins
-# --------------------------------------------------------------
-Y       <- "LIB3M"
-depLog  <- FALSE
-Reg.SNB.ir <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag, Data, myStart, myEnd)
-
-# Note: Scale used from event study
-Result <- createLPPlot(Reg.SNB.ir, Reg.SNB.ir, 0.75, NormInit, H, gap, c(-5, 2), 
-                       "Zins (In %)",
-                       "Quartale nach einer 0.75 pp Anhebung des Schweizer Leitzinses", 
-                       "../Resultate/Zins_SNB_Q", figWidth, figHeight)
+Zc      <- c("GDPEUR", "CPIFor")
+exoLog  <- c(TRUE,     TRUE)
+Yc      <- c("")
+conLog  <- c()
 
 # --------------------------------------------------------------
 # BIP
 # --------------------------------------------------------------
+# Scale mit Tagesstudie bestimmt (3*0.25 = 0.75%)
 for (i in 1:length(GDPLabs)){
   Y       <- colnames(GDP[,i])
   depLog  <- TRUE
-  Reg.SNB.gdp <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag, Data, myStart, myEnd)
-  
+  Reg.SNB.gdp <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
   
   # Note: Scale used from event study
-  Result <- createLPPlot(Reg.SNB.gdp, Reg.SNB.ir, 0.75, NormInit, H, gap, c(-5, 2), 
+  Result <- createLPPlot(Reg.SNB.gdp, c(), 3, NormInit, H, gap, c(-5, 2), 
                          paste(GDPLabs[i], " (In %)", sep = ""), 
                          "Quartale nach einer 0.75 pp Anhebung des Schweizer Leitzinses", 
                          paste("../Resultate/BIP_", i, "_SNB_Q", sep = ""), figWidth, figHeight)
@@ -123,16 +119,19 @@ for (i in 1:length(GDPLabs)){
 # --------------------------------------------------------------
 # Preise
 # --------------------------------------------------------------
+# Scale mit Tagesstudie bestimmt (3*0.25 = 0.75%)
 Y       <- "CPI"
 depLog  <- TRUE
-Reg.SNB.cpi <- EstimLP(MainEv, e, Y, Yc, Ec, H, P, depLog, conLog, lagShocks, depLag, Data, myStart, myEnd)
+Reg.SNB.cpi <- EstimLP(MainEv, e, Y, Yc, Zc, Ec, H, P, depLog, conLog, exoLog, lagShocks, depLag, Data, myStart, myEnd)
 
 # Note: Scale used from event study
-Result <- createLPPlot(Reg.SNB.cpi, Reg.SNB.ir, 0.75, NormInit, H, gap, c(-5, 2), 
+Result <- createLPPlot(Reg.SNB.cpi, c(), 3, NormInit, H, gap, c(-5, 2), 
                        "Konsumentenpreise (In %)",
                        "Quartale nach einer 0.75 pp Anhebung des Schweizer Leitzinses", 
                        "../Resultate/Konsumentenpreise_SNB_Q", figWidth, figHeight)
 
+
 #-------------------------------------------------------------------------------------
 # END OF FILE
 #-------------------------------------------------------------------------------------
+
