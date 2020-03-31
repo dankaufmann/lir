@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1585657366342.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1957062189",
+    "id" : "7546787B",
+    "lastKnownWriteTime" : 1585657459,
+    "last_content_update" : 1585657459529,
+    "path" : "C:/Users/daenu/switchdrive/Mandates/Bankierverenigung/Codes/lir/R/3_TheoreticalModel.R",
+    "project_path" : "3_TheoreticalModel.R",
+    "properties" : {
+        "cursorPosition" : "517,17",
+        "scrollLine" : "486"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

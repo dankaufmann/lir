@@ -242,9 +242,9 @@ Scenario <- ts_span(Scenario, plotStart, plotEnd)
 # Grafik mit Scenarien für Wechselkurs
 p <- ts_ggplot(
   `Historie`                     = (Scenario$NEURRHist),
-  `S1: Status Quo`               = (Scenario$NEURRSc1),
-  `S2: SNB sofortiger Ausstieg`  = (Scenario$NEURRSc2),
-  `S3: SNB gradueller Ausstieg`  = (Scenario$NEURRSc3),
+  `S1: Basisszenario`               = (Scenario$NEURRSc1),
+  `S2: Sofortiger Ausstieg SNB`  = (Scenario$NEURRSc2),
+  `S3: Gradueller Ausstieg SNB`  = (Scenario$NEURRSc3),
   title = "Nomineller Wechselkurs (Index, Dez. 2000 = 100)"
 )
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -260,8 +260,8 @@ ggsave(filename = "../Resultate/WechselkursS1-3_M.png", width = figWidth, height
 # Grafik mit Scenarien für Wechselkurs
 p <- ts_ggplot(
   `Historie`                     = (Scenario$NEURRHist),
-  `S1: Status Quo`               = (Scenario$NEURRSc1),
-  `S4: EZB gradueller Ausstieg`  = (Scenario$NEURRSc4),
+  `S1: Basisszenario`               = (Scenario$NEURRSc1),
+  `S4: Gradueller Ausstieg EZB`  = (Scenario$NEURRSc4),
   title = "Nomineller Wechselkurs (Dez. 2000 = 100)"
   
 )
@@ -278,9 +278,9 @@ ggsave(filename = "../Resultate/WechselkursS1-4_M.png", width = figWidth, height
 # Grafik mit Scenarien für Aktienpreise
 p <- ts_ggplot(
   `Historie`                     = (Scenario$SPCHHist),
-  `S1: Status Quo`               = (Scenario$SPCHSc1),
-  `S2: SNB sofortiger Ausstieg`  = (Scenario$SPCHSc2),
-  `S3: SNB gradueller Ausstieg`  = (Scenario$SPCHSc3),
+  `S1: Basisszenario`               = (Scenario$SPCHSc1),
+  `S2: Sofortiger Ausstieg SNB`  = (Scenario$SPCHSc2),
+  `S3: Gradueller Ausstieg SNB`  = (Scenario$SPCHSc3),
   title = "Aktienpreise (Index)"
 )
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -296,9 +296,9 @@ ggsave(filename = "../Resultate/AktienpreiseS1-3_M.png", width = figWidth, heigh
 # Grafik mit Scenarien für Wechselkurs
 p <- ts_ggplot(
   `Historie`                     = (Scenario$NEURRHist),
-  `S1: Status Quo`               = (Scenario$NEURRSc1),
-  `S5: EZB Zinssenkung ohne Reaktion` = (Scenario$NEURRSc5),
-  `S6: EZB Zinssenkung mit Reaktion`  = (Scenario$NEURRSc6),
+  `S1: Basisszenario`               = (Scenario$NEURRSc1),
+  `S5: Zinssenkung EZB ohne Reaktion` = (Scenario$NEURRSc5),
+  `S6: Zinssenkung EZB mit Reaktion`  = (Scenario$NEURRSc6),
   title = "Nomineller Wechselkurs (Dez. 2000 = 100)"
   
 )
@@ -315,12 +315,12 @@ ggsave(filename = "../Resultate/WechselkursS1-6_M.png", width = figWidth, height
 # Grafik mit Scenarien für Langfristzinsen
 p <- ts_ggplot(
   `Historie`                     = (Scenario$LRCHHist),
-  `S1: Status Quo`               = (Scenario$LRCHSc1),
-  `S2: SNB sofortiger Ausstieg`  = (Scenario$LRCHSc2),
-  `S3: SNB gradueller Ausstieg`  = (Scenario$LRCHSc3),
-  `S4: EZB gradueller Ausstieg`  = (Scenario$LRCHSc4),
-  `S5: EZB Zinssenkung ohne Reaktion SNB` = (Scenario$LRCHSc5),
-  `S6: EZB Zinssenkung mit Reaktion SNB`  = (Scenario$LRCHSc6),
+  `S1: Basisszenario`               = (Scenario$LRCHSc1),
+  `S2: Sofortiger Ausstieg SNB`  = (Scenario$LRCHSc2),
+  `S3: Gradueller Ausstieg SNB`  = (Scenario$LRCHSc3),
+  `S4: Gradueller Ausstieg EZB`  = (Scenario$LRCHSc4),
+  `S5: Zinssenkung EZB ohne Reaktion` = (Scenario$LRCHSc5),
+  `S6: Zinssenkung EZB mit Reaktion`  = (Scenario$LRCHSc6),
   title = "Zinsen 10-jährige Bundesobligationen (In %)"
   
 )
@@ -337,12 +337,12 @@ ggsave(filename = "../Resultate/Langfristzinsen_M.png", width = figWidth, height
 # Grafik mit Scenarien für Hypozinsen
 p <- ts_ggplot(
   `Historie`                     = (Scenario$HypCHHist),
-  `S1: Status Quo`               = (Scenario$HypCHSc1),
-  `S2: SNB sofortiger Ausstieg`  = (Scenario$HypCHSc2),
-  `S3: SNB gradueller Ausstieg`  = (Scenario$HypCHSc3),
-  `S4: EZB gradueller Ausstieg`  = (Scenario$HypCHSc4),
-  `S5: EZB Zinssenkung ohne Reaktion SNB` = (Scenario$HypCHSc5),
-  `S6: EZB Zinssenkung mit Reaktion SNB`  = (Scenario$HypCHSc6),
+  `S1: Basisszenario `               = (Scenario$HypCHSc1),
+  `S2: Sofortiger Ausstieg SNB`  = (Scenario$HypCHSc2),
+  `S3: Gradueller Ausstieg SNB`  = (Scenario$HypCHSc3),
+  `S4: Gradueller Ausstieg EZB`  = (Scenario$HypCHSc4),
+  `S5: Zinssenkung EZB ohne Reaktion` = (Scenario$HypCHSc5),
+  `S6: Zinssenkung EZB mit Reaktion`  = (Scenario$HypCHSc6),
   title = "Zinsen variable Hypotheken (In %)"
   
 )
@@ -359,12 +359,12 @@ ggsave(filename = "../Resultate/Hypozinsen_M.png", width = figWidth, height = fi
 # Grafik mit Scenarien für Sparzinsen
 p <- ts_ggplot(
   `Historie`                     = (Scenario$SparCHHist),
-  `S1: Status Quo`               = (Scenario$SparCHSc1),
-  `S2: SNB sofortiger Ausstieg`  = (Scenario$SparCHSc2),
-  `S3: SNB gradueller Ausstieg`  = (Scenario$SparCHSc3),
-  `S4: EZB gradueller Ausstieg`  = (Scenario$SparCHSc4),
-  `S5: EZB Zinssenkung ohne Reaktion SNB` = (Scenario$SparCHSc5),
-  `S6: EZB Zinssenkung mit Reaktion SNB`  = (Scenario$SparCHSc6),
+  `S1: Basisszenario`               = (Scenario$SparCHSc1),
+  `S2: Sofortiger Ausstieg SNB`  = (Scenario$SparCHSc2),
+  `S3: Gradueller Ausstieg SNB`  = (Scenario$SparCHSc3),
+  `S4: Gradueller Ausstieg EZB`  = (Scenario$SparCHSc4),
+  `S5: Zinssenkung EZB ohne Reaktion` = (Scenario$SparCHSc5),
+  `S6: Zinssenkung EZB mit Reaktion`  = (Scenario$SparCHSc6),
   title = "Zinsen Spareinlagen (In %)"
   
 )

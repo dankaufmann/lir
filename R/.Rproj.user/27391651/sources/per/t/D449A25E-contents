@@ -1,0 +1,440 @@
+# ------------------------------------------------------------------------
+# Wie weiter mit der Tiefzinspolitik? Szenarien und Alternativen
+# - MonthlyModel.R
+# ------------------------------------------------------------------------
+# Bemerkungen: Schätzt Fehlerkorrektur-Modell mit Monatsdaten
+#
+# ------------------------------------------------------------------------
+# Daniel Kaufmann, 2020, daniel.kaufmann@unine.ch
+# ------------------------------------------------------------------------
+cat("\014") 
+rm(list=ls())
+library(tsbox)
+library(forecast)
+library(ggplot2)
+library(RColorBrewer)
+library(forecast)
+library(xts)
+library(xlsx)
+library(lubridate)
+library(ggpubr)
+library(vars)
+library(egcm)
+library(seasonal)
+source("Functions.R")
+
+#-------------------------------------------------------------------------------------
+# Einstellungen
+#-------------------------------------------------------------------------------------
+myStart   <- "1985-01-01"   # Startpunkt für Schätzung
+myEnd     <- "2007-12-01"   # Endpunkt für Schätzung
+plotStart <- "2014-01-01"   # Startpunkt für Grafiken
+plotEnd   <- "2024-12-01"   # Endpunkt für Grafiken
+maxLag    <- 12             # Maximale Anzahl Lags im VAR
+H         <- 60             # Prognosehorizont
+figWidth  <- 5.5
+figHeight <- 5
+
+# Dieser Pfad muss auf den Ordner mit dem R Saisonbereinigungsprogramm zeigen, damit der
+# code funktioniert.
+PathSettings <- "C:/Users/daenu/Documents/R/win-library/3.6/x13binary/bin"
+
+#-------------------------------------------------------------------------------------
+# Datenimport
+#-------------------------------------------------------------------------------------
+SRData = read.xlsx("../Daten/SRDataM.xlsx", sheetName = "Data", startRow = 1)
+LRData = read.xlsx("../Daten/LRDataM.xlsx", sheetName = "Data", startRow = 1)
+XRData = read.xlsx("../Daten/XRDataM.xlsx", sheetName = "Data", startRow = 19)
+StockData = read.xlsx("../Daten/StockDataM.xlsx", sheetName = "Data", startRow = 1)
+HypData = read.xlsx("../Daten/HypoCashIRM.xlsx", sheetName = "Data", startRow = 20)
+CPIData = read.xlsx("../Daten/CPICHM.xlsx", sheetName = "Data", startRow = 4)
+
+HypData[,1] <- as.Date(HypData[,1])
+HypCH <- xts(HypData[,2], order.by = as.Date(paste(year(HypData[,1]), month(HypData[,1]), "01", sep = "-")))
+SparCH <- xts(HypData[,3], order.by = as.Date(paste(year(HypData[,1]), month(HypData[,1]), "01", sep = "-")))
+ 
+SRGE <- xts(subset(SRData, LOCATION == "DEU")[,7], order.by = as.Date(paste(subset(SRData, LOCATION == "DEU")[,6], "-01", sep = "")))
+SRCH <- xts(subset(SRData, LOCATION == "CHE")[,7], order.by = as.Date(paste(subset(SRData, LOCATION == "CHE")[,6], "-01", sep = "")))
+LRGE <- xts(subset(LRData, LOCATION == "DEU")[,7], order.by = as.Date(paste(subset(LRData, LOCATION == "DEU")[,6], "-01", sep = "")))
+LRCH <- xts(subset(LRData, LOCATION == "CHE")[,7], order.by = as.Date(paste(subset(LRData, LOCATION == "CHE")[,6], "-01", sep = "")))
+SPCH <- xts(subset(StockData, LOCATION == "CHE")[,7], order.by = as.Date(paste(subset(StockData, LOCATION == "CHE")[,6], "-01", sep = "")))
+
+NEER  <- xts(XRData[,2], order.by = as.Date(paste(XRData[,1], "-01", sep = "")))
+REER  <- xts(XRData[,4], order.by = as.Date(paste(XRData[,1], "-01", sep = "")))
+NEURR <- xts(XRData[,3], order.by = as.Date(paste(XRData[,1], "-01", sep = "")))
+REURR <- xts(XRData[,5], order.by = as.Date(paste(XRData[,1], "-01", sep = "")))
+
+NEER <- ts_index(1/NEER, "2000-12-01")*100
+REER <- ts_index(1/REER, "2000-12-01")*100
+NEURR <- ts_index(1/NEURR, "2000-12-01")*100
+REURR <- ts_index(1/REURR, "2000-12-01")*100
+
+# Saisonbereingung des LIK
+Sys.setenv(X13_PATH = PathSettings)
+CPI <- xts(CPIData[,11], order.by = as.Date(CPIData[,1]))
+CPI = ts_span(CPI, "1970-01-01")
+SEATSDecomp = seas(ts_ts(CPI))
+CPI <- SEATSDecomp$series$s11
+CPI <- ts_index(CPI, base = "2000-12-01")*100
+
+#-------------------------------------------------------------------------------------
+# Kointegrationstests
+#-------------------------------------------------------------------------------------
+Data <- ts_c(SRGE, SRCH)
+
+# Schätzung i = e + i*(+1)-i*+eps (für Tagesmodell, gemäss Theorie)
+Data$i <- Data$SRCH
+Data$dis <- ts_lag(Data$SRGE, -1) -Data$SRGE
+Data$is <- Data$SRGE
+Data <- ts_span(Data, start = myStart, end = myEnd)
+
+# Schätzung i = i* + eps (für Monatsmodell, gemäss Theorie)
+CointReg2 <- lm(i~is, data = Data)
+summary(CointReg2)
+Equilib2 <- CointReg2$resid
+plot(Equilib2)
+Test2 <- egcm(Data$is, Data$i)
+Test2
+summary(Test2)
+
+cintConst <- CointReg2$coefficients[1]
+cintSlope <- CointReg2$coefficients[2]
+
+#-------------------------------------------------------------------------------------
+# VARX schätzen
+#-------------------------------------------------------------------------------------
+# Endogen: Zinsen Schweiz (diff), Aktienpreise Schweiz (grt), Wechselkurs Schweiz (grt), Konsumentenpreise (grt)
+# Exogen:  Zinsdifferenz (Kointegrationsterm)
+OrigData <- ts_c(NEURR, SPCH, CPI, LRCH, HypCH, SparCH)
+colnames(OrigData) <- c("NEURR", "SPCH", "CPI", "LRCH", "HypCH", "SparCH")
+
+EndoData <- ts_c(ts_pc(NEURR), ts_pc(SPCH), ts_pc(CPI), ts_diff(LRCH), ts_diff(HypCH), ts_diff(SparCH))
+colnames(EndoData) <- c("NEURR", "SPCH", "CPI", "LRCH", "HypCH", "SparCH")
+ExoData  <- ts_c(SRCH-cintSlope*SRGE-cintConst, dplyr::lag(SRCH-cintSlope*SRGE-cintConst, 1))
+
+OrigData <- ts_span(OrigData, myStart, myEnd)
+EndoDataAll <- ts_span(EndoData, myStart, "2020-03-01")
+EndoData <- ts_span(EndoData, myStart, myEnd)
+ExoData  <- ts_span(ExoData, myStart, myEnd)
+colnames(ExoData) <- c("Diff", "Diff.l1")
+
+VARModel <- VAR(EndoData,
+              exogen = ExoData,
+              type = c("const"),
+              lag.max = maxLag,
+              ic = c("SC"))
+summary(VARModel)
+
+#-------------------------------------------------------------------------------------
+# Szenarien erstellen
+#-------------------------------------------------------------------------------------
+load('../Resultate/Szenarien_M.rdata')
+XScenario1 <- ts_c(XSc1$SRCH-cintSlope*XSc1$SRGE-cintConst, dplyr::lag(XSc1$SRCH-cintSlope*XSc1$SRGE-cintConst, 1))
+XScenario2 <- ts_c(XSc2$SRCH-cintSlope*XSc2$SRGE-cintConst, dplyr::lag(XSc2$SRCH-cintSlope*XSc2$SRGE-cintConst, 1))
+XScenario3 <- ts_c(XSc3$SRCH-cintSlope*XSc3$SRGE-cintConst, dplyr::lag(XSc3$SRCH-cintSlope*XSc3$SRGE-cintConst, 1))
+XScenario4 <- ts_c(XSc4$SRCH-cintSlope*XSc4$SRGE-cintConst, dplyr::lag(XSc4$SRCH-cintSlope*XSc4$SRGE-cintConst, 1))
+XScenario5 <- ts_c(XSc5$SRCH-cintSlope*XSc5$SRGE-cintConst, dplyr::lag(XSc5$SRCH-cintSlope*XSc5$SRGE-cintConst, 1))
+XScenario6 <- ts_c(XSc6$SRCH-cintSlope*XSc6$SRGE-cintConst, dplyr::lag(XSc6$SRCH-cintSlope*XSc6$SRGE-cintConst, 1))
+
+XScenario1["2020-04-01", 2] <- as.numeric((SRCH-cintSlope*SRGE-cintConst)["2020-03-01"])
+XScenario2["2020-04-01", 2] <- as.numeric((SRCH-cintSlope*SRGE-cintConst)["2020-03-01"])
+XScenario3["2020-04-01", 2] <- as.numeric((SRCH-cintSlope*SRGE-cintConst)["2020-03-01"])
+XScenario4["2020-04-01", 2] <- as.numeric((SRCH-cintSlope*SRGE-cintConst)["2020-03-01"])
+XScenario5["2020-04-01", 2] <- as.numeric((SRCH-cintSlope*SRGE-cintConst)["2020-03-01"])
+XScenario6["2020-04-01", 2] <- as.numeric((SRCH-cintSlope*SRGE-cintConst)["2020-03-01"])
+
+XScenario1 <- XScenario1[1:H,]
+XScenario2 <- XScenario2[1:H,]
+XScenario3 <- XScenario3[1:H,]
+XScenario4 <- XScenario4[1:H,]
+XScenario5 <- XScenario5[1:H,]
+XScenario6 <- XScenario6[1:H,]
+
+colnames(XScenario1) <- c("Diff", "Diff.l1")
+colnames(XScenario2) <- c("Diff", "Diff.l1")
+colnames(XScenario3) <- c("Diff", "Diff.l1")
+colnames(XScenario4) <- c("Diff", "Diff.l1")
+colnames(XScenario5) <- c("Diff", "Diff.l1")
+colnames(XScenario6) <- c("Diff", "Diff.l1")
+
+#-------------------------------------------------------------------------------------
+# Prognose erstellen
+#-------------------------------------------------------------------------------------
+FcstScenario1 <- predict(VARModel, n.ahead = H, dumvar = XScenario1, ci = 0.95)
+FcstScenario2 <- predict(VARModel, n.ahead = H, dumvar = XScenario2, ci = 0.95)
+FcstScenario3 <- predict(VARModel, n.ahead = H, dumvar = XScenario3, ci = 0.95)
+FcstScenario4 <- predict(VARModel, n.ahead = H, dumvar = XScenario4, ci = 0.95)
+FcstScenario5 <- predict(VARModel, n.ahead = H, dumvar = XScenario5, ci = 0.95)
+FcstScenario6 <- predict(VARModel, n.ahead = H, dumvar = XScenario6, ci = 0.95)
+
+#-------------------------------------------------------------------------------------
+# In Niveaus transformieren und Grafiken erstellen
+#-------------------------------------------------------------------------------------
+fcstStart <- ts_summary(XScenario1$Diff)$start
+fcstEnd   <- ts_summary(XScenario1$Diff)$end
+histEnd   <- "2020-03-01"
+
+temp     <- ts_bind(EndoDataAll[,1], XScenario1$Diff.l1)
+Scenario <- ts_c(temp, temp, temp, temp, temp, temp, temp, 
+                 temp, temp, temp, temp, temp, temp, temp, 
+                 temp, temp, temp, temp, temp, temp, temp, 
+                 temp, temp, temp, temp, temp, temp, temp, 
+                 temp, temp, temp, temp, temp, temp, temp, 
+                 temp, temp, temp, temp, temp, temp, temp)
+colnames(Scenario) <- c(paste(colnames(EndoData), "Sc1", sep = ""), 
+                        paste(colnames(EndoData), "Sc2", sep = ""), 
+                        paste(colnames(EndoData), "Sc3", sep = ""), 
+                        paste(colnames(EndoData), "Sc4", sep = ""),
+                        paste(colnames(EndoData), "Sc5", sep = ""),
+                        paste(colnames(EndoData), "Sc6", sep = ""),
+                        paste(colnames(EndoData), "Hist", sep = ""))
+
+Scens <- list(FcstScenario1, FcstScenario2, FcstScenario3, FcstScenario4, FcstScenario5, FcstScenario6)
+Trans <- c("grt", "grt", "grt", "diff", "diff", "diff")
+
+for(j in 1:length(Scens)){
+  for(i in 1:length(colnames(EndoData))){
+    
+    # Vergangenheit mit Prognose verbinden
+    Scen     <- Scens[[j]]
+    tempFcst <- matrix(unlist(Scen$fcst[i]), nrow = H)
+    tempFcst <- xts(tempFcst[,1], order.by = as.Date(index(XScenario1)))
+    temp1    <- ts_bind(EndoDataAll[,i], tempFcst)
+
+    # Aufkumulieren (bei ersten Differenzen)
+    if(Trans[i] == "diff"){
+      temp2 <- ts_cumsum(temp1)
+      
+      # Auf tatsächlichen Anfangswert setzen
+      temp2 <- (temp2-as.numeric(temp2[1]))+as.numeric(OrigData[1, i])
+    }
+    # Aufkumulieren (bei Wachstumsraten)
+    if(Trans[i] == "grt"){
+      temp2 <- ts_cumprod(1+temp1/100)
+      
+      # Auf tatsächlichen Anfangswert setzen
+      temp2 <- temp2/as.numeric(temp2[1])*as.numeric(OrigData[1, i])
+    }
+    # Sonst keine transformation
+    if(Trans[i] == "no"){
+      temp2 <- temp1
+    }
+        
+    # Historie und Prognose extrahieren
+    Hist <- temp2
+    Hist[index(temp2)>=fcstStart,] <- NA
+    Fcst <- temp2
+    Fcst[index(temp2)<fcstStart,] <- NA
+    
+    # Colname zusammenstellen
+    ColFcst <- paste(colnames(EndoData)[i], "Sc", j, sep = "")
+    ColHist <- paste(colnames(EndoData)[i], "Hist", sep = "")
+    
+    # In neuen data frame speichern
+    Scenario[, ColFcst] <- Fcst
+    Scenario[, ColHist] <- Hist
+    
+  }
+}
+
+Scenario <- ts_span(Scenario, plotStart, plotEnd)
+
+# Grafik mit Scenarien für Wechselkurs
+p <- ts_ggplot(
+  `Historie`                     = (Scenario$NEURRHist),
+  `S1: Basisszenario`               = (Scenario$NEURRSc1),
+  `S2: Sofortiger Ausstieg SNB`  = (Scenario$NEURRSc2),
+  `S3: Gradueller Ausstieg SNB`  = (Scenario$NEURRSc3),
+  title = "Nomineller Wechselkurs (Index, Dez. 2000 = 100)"
+)
+p <- p + theme_minimal() + ylab("")+xlab("")+
+  ggplot2::geom_line(aes(),size=1)+ggplot2::scale_color_brewer(palette = "Dark2")+
+  theme(legend.position="bottom",legend.margin=margin(0,0,0,0),legend.box.margin=margin(-20,-5,0,-5))+ggplot2::guides(col=guide_legend(nrow=2,byrow=TRUE))+ggplot2::theme(legend.title = element_blank())+
+  theme(axis.line = element_line(colour = "black", size = 0.1))+ theme(panel.background = element_blank())+
+  theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))+theme(text = element_text(family = "Palatino"))+
+  theme(panel.grid.major = element_line(colour = "black",size=0.1,linetype="dotted"), panel.grid.minor = element_blank()) 
+p
+ggsave(filename = "../Resultate/WechselkursS1-3_M.pdf", width = figWidth, height = figHeight)
+ggsave(filename = "../Resultate/WechselkursS1-3_M.png", width = figWidth, height = figHeight)
+
+# Grafik mit Scenarien für Wechselkurs
+p <- ts_ggplot(
+  `Historie`                     = (Scenario$NEURRHist),
+  `S1: Basisszenario`               = (Scenario$NEURRSc1),
+  `S4: Gradueller Ausstieg EZB`  = (Scenario$NEURRSc4),
+  title = "Nomineller Wechselkurs (Dez. 2000 = 100)"
+  
+)
+p <- p + theme_minimal() + ylab("")+xlab("")+
+  ggplot2::geom_line(aes(),size=1)+ggplot2::scale_color_brewer(palette = "Dark2")+
+  theme(legend.position="bottom",legend.margin=margin(0,0,0,0),legend.box.margin=margin(-20,-5,0,-5))+ggplot2::guides(col=guide_legend(nrow=2,byrow=TRUE))+ggplot2::theme(legend.title = element_blank())+
+  theme(axis.line = element_line(colour = "black", size = 0.1))+ theme(panel.background = element_blank())+
+  theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))+theme(text = element_text(family = "Palatino"))+
+  theme(panel.grid.major = element_line(colour = "black",size=0.1,linetype="dotted"), panel.grid.minor = element_blank()) 
+p
+ggsave(filename = "../Resultate/WechselkursS1-4_M.pdf", width = figWidth, height = figHeight)
+ggsave(filename = "../Resultate/WechselkursS1-4_M.png", width = figWidth, height = figHeight)
+
+# Grafik mit Scenarien für Aktienpreise
+p <- ts_ggplot(
+  `Historie`                     = (Scenario$SPCHHist),
+  `S1: Basisszenario`               = (Scenario$SPCHSc1),
+  `S2: Sofortiger Ausstieg SNB`  = (Scenario$SPCHSc2),
+  `S3: Gradueller Ausstieg SNB`  = (Scenario$SPCHSc3),
+  title = "Aktienpreise (Index)"
+)
+p <- p + theme_minimal() + ylab("")+xlab("")+
+  ggplot2::geom_line(aes(),size=1)+ggplot2::scale_color_brewer(palette = "Dark2")+
+  theme(legend.position="bottom",legend.margin=margin(0,0,0,0),legend.box.margin=margin(-20,-5,0,-5))+ggplot2::guides(col=guide_legend(nrow=2,byrow=TRUE))+ggplot2::theme(legend.title = element_blank())+
+  theme(axis.line = element_line(colour = "black", size = 0.1))+ theme(panel.background = element_blank())+
+  theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))+theme(text = element_text(family = "Palatino"))+
+  theme(panel.grid.major = element_line(colour = "black",size=0.1,linetype="dotted"), panel.grid.minor = element_blank()) 
+p
+ggsave(filename = "../Resultate/AktienpreiseS1-3_M.pdf", width = figWidth, height = figHeight)
+ggsave(filename = "../Resultate/AktienpreiseS1-3_M.png", width = figWidth, height = figHeight)
+
+# Grafik mit Scenarien für Wechselkurs
+p <- ts_ggplot(
+  `Historie`                     = (Scenario$NEURRHist),
+  `S1: Basisszenario`               = (Scenario$NEURRSc1),
+  `S5: Zinssenkung EZB ohne Reaktion` = (Scenario$NEURRSc5),
+  `S6: Zinssenkung EZB mit Reaktion`  = (Scenario$NEURRSc6),
+  title = "Nomineller Wechselkurs (Dez. 2000 = 100)"
+  
+)
+p <- p + theme_minimal() + ylab("")+xlab("")+
+  ggplot2::geom_line(aes(),size=1)+ggplot2::scale_color_brewer(palette = "Dark2")+
+  theme(legend.position="bottom",legend.margin=margin(0,0,0,0),legend.box.margin=margin(-20,-5,0,-5))+ggplot2::guides(col=guide_legend(nrow=2,byrow=TRUE))+ggplot2::theme(legend.title = element_blank())+
+  theme(axis.line = element_line(colour = "black", size = 0.1))+ theme(panel.background = element_blank())+
+  theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))+theme(text = element_text(family = "Palatino"))+
+  theme(panel.grid.major = element_line(colour = "black",size=0.1,linetype="dotted"), panel.grid.minor = element_blank()) 
+p
+ggsave(filename = "../Resultate/WechselkursS1-6_M.pdf", width = figWidth, height = figHeight)
+ggsave(filename = "../Resultate/WechselkursS1-6_M.png", width = figWidth, height = figHeight)
+
+# Grafik mit Scenarien für Langfristzinsen
+p <- ts_ggplot(
+  `Historie`                     = (Scenario$LRCHHist),
+  `S1: Basisszenario`               = (Scenario$LRCHSc1),
+  `S2: Sofortiger Ausstieg SNB`  = (Scenario$LRCHSc2),
+  `S3: Gradueller Ausstieg SNB`  = (Scenario$LRCHSc3),
+  `S4: Gradueller Ausstieg EZB`  = (Scenario$LRCHSc4),
+  `S5: Zinssenkung EZB ohne Reaktion` = (Scenario$LRCHSc5),
+  `S6: Zinssenkung EZB mit Reaktion`  = (Scenario$LRCHSc6),
+  title = "Zinsen 10-jährige Bundesobligationen (In %)"
+  
+)
+p <- p + theme_minimal()+ ylab("")+xlab("")+
+  ggplot2::geom_line(aes(),size=1)+ggplot2::scale_color_brewer(palette = "Dark2")+
+  theme(legend.position="bottom",legend.margin=margin(0,0,0,0),legend.box.margin=margin(-20,-5,0,-5))+ggplot2::guides(col=guide_legend(nrow=4,byrow=TRUE))+ggplot2::theme(legend.title = element_blank())+
+  theme(axis.line = element_line(colour = "black", size = 0.1))+ theme(panel.background = element_blank())+
+  theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))+theme(text = element_text(family = "Palatino"))+
+  theme(panel.grid.major = element_line(colour = "black",size=0.1,linetype="dotted"), panel.grid.minor = element_blank()) 
+p
+ggsave(filename = "../Resultate/Langfristzinsen_M.pdf", width = figWidth, height = figHeight)
+ggsave(filename = "../Resultate/Langfristzinsen_M.png", width = figWidth, height = figHeight)
+
+# Grafik mit Scenarien für Hypozinsen
+p <- ts_ggplot(
+  `Historie`                     = (Scenario$HypCHHist),
+  `S1: Basisszenario `               = (Scenario$HypCHSc1),
+  `S2: Sofortiger Ausstieg SNB`  = (Scenario$HypCHSc2),
+  `S3: Gradueller Ausstieg SNB`  = (Scenario$HypCHSc3),
+  `S4: Gradueller Ausstieg EZB`  = (Scenario$HypCHSc4),
+  `S5: Zinssenkung EZB ohne Reaktion` = (Scenario$HypCHSc5),
+  `S6: Zinssenkung EZB mit Reaktion`  = (Scenario$HypCHSc6),
+  title = "Zinsen variable Hypotheken (In %)"
+  
+)
+p <- p + theme_minimal()+ ylab("")+xlab("")+
+  ggplot2::geom_line(aes(),size=1)+ggplot2::scale_color_brewer(palette = "Dark2")+
+  theme(legend.position="bottom",legend.margin=margin(0,0,0,0),legend.box.margin=margin(-20,-5,0,-5))+ggplot2::guides(col=guide_legend(nrow=4,byrow=TRUE))+ggplot2::theme(legend.title = element_blank())+
+  theme(axis.line = element_line(colour = "black", size = 0.1))+ theme(panel.background = element_blank())+
+  theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))+theme(text = element_text(family = "Palatino"))+
+  theme(panel.grid.major = element_line(colour = "black",size=0.1,linetype="dotted"), panel.grid.minor = element_blank()) 
+p
+ggsave(filename = "../Resultate/Hypozinsen_M.pdf", width = figWidth, height = figHeight)
+ggsave(filename = "../Resultate/Hypozinsen_M.png", width = figWidth, height = figHeight)
+
+# Grafik mit Scenarien für Sparzinsen
+p <- ts_ggplot(
+  `Historie`                     = (Scenario$SparCHHist),
+  `S1: Basisszenario`               = (Scenario$SparCHSc1),
+  `S2: Sofortiger Ausstieg SNB`  = (Scenario$SparCHSc2),
+  `S3: Gradueller Ausstieg SNB`  = (Scenario$SparCHSc3),
+  `S4: Gradueller Ausstieg EZB`  = (Scenario$SparCHSc4),
+  `S5: Zinssenkung EZB ohne Reaktion` = (Scenario$SparCHSc5),
+  `S6: Zinssenkung EZB mit Reaktion`  = (Scenario$SparCHSc6),
+  title = "Zinsen Spareinlagen (In %)"
+  
+)
+p <- p + theme_minimal()+ ylab("")+xlab("")+
+  ggplot2::geom_line(aes(),size=1)+ggplot2::scale_color_brewer(palette = "Dark2")+
+  theme(legend.position="bottom",legend.margin=margin(0,0,0,0),legend.box.margin=margin(-20,-5,0,-5))+ggplot2::guides(col=guide_legend(nrow=4,byrow=TRUE))+ggplot2::theme(legend.title = element_blank())+
+  theme(axis.line = element_line(colour = "black", size = 0.1))+ theme(panel.background = element_blank())+
+  theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))+theme(text = element_text(family = "Palatino"))+
+  theme(panel.grid.major = element_line(colour = "black",size=0.1,linetype="dotted"), panel.grid.minor = element_blank()) 
+p
+ggsave(filename = "../Resultate/Sparzinsen_M.pdf", width = figWidth, height = figHeight)
+ggsave(filename = "../Resultate/Sparzinsen_M.png", width = figWidth, height = figHeight)
+
+#-------------------------------------------------------------------------------------
+# Tabelle erstellen
+#-------------------------------------------------------------------------------------
+# Erwartete Aufwertung
+lastObs <- as.matrix(Scenario$NEURRHist[histEnd])
+lastSc1 <- as.matrix(Scenario$NEURRSc1[plotEnd])
+lastSc2 <- as.matrix(Scenario$NEURRSc2[plotEnd])
+lastSc3 <- as.matrix(Scenario$NEURRSc3[plotEnd])
+lastSc4 <- as.matrix(Scenario$NEURRSc4[plotEnd])
+lastSc5 <- as.matrix(Scenario$NEURRSc5[plotEnd])
+lastSc6 <- as.matrix(Scenario$NEURRSc6[plotEnd])
+
+# Wahrscheinlichkeit einer grossen Aufwertung
+z957 = qnorm(0.975, 0, 1)
+NSim = 5000    
+PLarge <- array(NaN, dim = c(6, H))
+rownames(PLarge) <- c("Scen1", "Scen2", "Scen3", "Scen4", "Scen5", "Scen6")
+q <- 1
+for(Scen in list(FcstScenario1, FcstScenario2, FcstScenario3, FcstScenario4, FcstScenario5, FcstScenario6)){
+  fcsth = Scen$fcst$NEURR[,"fcst"]
+  sighScen = ((Scen$fcst$NEURR[,"lower"]-Scen$fcst$NEURR[,"fcst"])/(-z957))^2
+  SimFcst = matrix(NA, nrow = length(fcsth), ncol = NSim)
+  for (h in 1:length(fcsth)){
+    SimFcst[h, ] = rnorm(NSim, fcsth[h], sqrt(sighScen[h]))
+  }
+  for (i in 1:NSim){
+    SimFcst[, i] = cumprod(1+ SimFcst[, i]/100)
+  }
+  PLarge[paste("Scen", q, sep = ""), ] = rowMeans(SimFcst<=0.90)
+  q <- q+1
+}
+
+# Wert am Ende des Prognosehorizonts
+PLarge[,as.Date(index(XScenario1))==as.Date(plotEnd)]
+
+Table   <- (c((lastSc1/lastObs-1)*100, (lastSc2/lastObs-1)*100, (lastSc3/lastObs-1)*100, (lastSc4/lastObs-1)*100, (lastSc5/lastObs-1)*100, (lastSc6/lastObs-1)*100))
+Table <- rbind(Table, c(PLarge[,as.Date(index(XScenario1))==plotEnd]))
+rownames(Table) <- c("Appreciation", "P[Large Appreciation]")
+print(Table)
+
+#-------------------------------------------------------------------------------------
+# Tabelle erstellen
+#-------------------------------------------------------------------------------------
+# Veränderung AKtienpreise
+lastObs <- as.matrix(Scenario$SPCHHist[histEnd])
+lastSc1 <- as.matrix(Scenario$SPCHSc1[plotEnd])
+lastSc2 <- as.matrix(Scenario$SPCHSc2[plotEnd])
+lastSc3 <- as.matrix(Scenario$SPCHSc3[plotEnd])
+lastSc4 <- as.matrix(Scenario$SPCHSc4[plotEnd])
+lastSc5 <- as.matrix(Scenario$SPCHSc5[plotEnd])
+lastSc6 <- as.matrix(Scenario$SPCHSc6[plotEnd])
+
+Table   <- (c((lastSc1/lastObs-1)*100, (lastSc2/lastObs-1)*100, (lastSc3/lastObs-1)*100, (lastSc4/lastObs-1)*100, (lastSc5/lastObs-1)*100, (lastSc6/lastObs-1)*100))
+print(Table)
+
+
+#-------------------------------------------------------------------------------------
+# END OF FILE
+#-------------------------------------------------------------------------------------
+

@@ -306,9 +306,9 @@ SRGE  <- ts_frequency(SRGE, to = "year", aggregate = "mean")
 # S1, S2, S3 Wechselkurs
 p <- ts_ggplot(
   `Historie`                      = ts_span(NEURR, plotStart),
-  `S1: Status Quo`                = ts_span(XSc1$e, "2020-01-01", plotEnd),
-  `S2: SNB sofortiger Ausstieg`   = ts_span(XSc2$e, "2020-01-01", plotEnd),
-  `S3: SNB gradueller Ausstieg`   = ts_span(XSc3$e, "2020-01-01", plotEnd),
+  `S1: Basisszenario`                = ts_span(XSc1$e, "2020-01-01", plotEnd),
+  `S2: Sofortiger Ausstieg SNB`   = ts_span(XSc2$e, "2020-01-01", plotEnd),
+  `S3: Gradueller Ausstieg SNB`   = ts_span(XSc3$e, "2020-01-01", plotEnd),
   title = "Nomineller Wechselkurs (Index, Dez. 2000 = 100)"
 )
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -324,9 +324,9 @@ ggsave(filename = "../Resultate/WechselkursS1-3_T.png", width = figWdth, height 
 # S1, S2, S3 Zins
 p <- ts_ggplot(
   `Historie` = ts_span(SRCH, plotStart),
-  `S1: Status Quo`                = ts_span(XSc1$i, "2020-01-01", plotEnd),
-  `S2: SNB sofortiger Ausstieg`   = ts_span(XSc2$i, "2020-01-01", plotEnd),
-  `S3: SNB gradueller Ausstieg`   = ts_span(XSc3$i, "2020-01-01", plotEnd),
+  `S1: Basisszenario`                = ts_span(XSc1$i, "2020-01-01", plotEnd),
+  `S2: Sofortiger Ausstieg SNB`   = ts_span(XSc2$i, "2020-01-01", plotEnd),
+  `S3: Gradueller Ausstieg SNB`   = ts_span(XSc3$i, "2020-01-01", plotEnd),
   title = "Kurzfristzinsen Schweiz (In %)"
 )
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -359,8 +359,8 @@ ggsave(filename = "../Resultate/WechselkursS1-4_T.png", width = figWdth, height 
 # S1, S4 Zins
 p <- ts_ggplot(
   `Historie` = ts_span(SRCH, plotStart),
-  `S1: Status Quo`                = ts_span(XSc1$i, "2020-01-01", plotEnd),
-  `S4: EZB gradueller Ausstieg`   = ts_span(XSc4$i, "2020-01-01", plotEnd),
+  `S1: Basisszenario`                = ts_span(XSc1$i, "2020-01-01", plotEnd),
+  `S4: Gradueller Ausstieg EZB`   = ts_span(XSc4$i, "2020-01-01", plotEnd),
   title = "Kurzfristzinsen Schweiz (In %)"
 )
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -376,9 +376,9 @@ ggsave(filename = "../Resultate/ZinsS1-4_T.png", width = figWdth, height = figHe
 # S1, S5, S6 Wechselkurs
 p <- ts_ggplot(
   `Historie`                      = ts_span(NEURR, plotStart),
-  `S1: Status Quo`                = ts_span(XSc1$e, "2020-01-01", plotEnd),
-  `S5: EZB Zinssenkung ohne Reaktion`   = ts_span(XSc5$e, "2020-01-01", plotEnd),
-  `S6: EZB Zinssenkung mit Reaktion`   = ts_span(XSc6$e, "2020-01-01", plotEnd),
+  `S1: Basisszenario`                = ts_span(XSc1$e, "2020-01-01", plotEnd),
+  `S5: Zinssenkung EZB ohne Reaktion`   = ts_span(XSc5$e, "2020-01-01", plotEnd),
+  `S6: Zinssenkung EZB mit Reaktion`   = ts_span(XSc6$e, "2020-01-01", plotEnd),
   title = "Nomineller Wechselkurs (Index, Dez. 2000 = 100)"
 )
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -411,7 +411,7 @@ ggsave(filename = "../Resultate/ZinsS1-6_T.png", width = figWdth, height = figHe
 # S7 Wechselkursziel Wechselkurs
 p <- ts_ggplot(
   `Historie`                          = ts_span(NEURR, plotStart),
-  `S1: Status Quo`                    = ts_span(XSc1$e, "2020-01-01", plotEnd),
+  `S1: Basisszenario`                    = ts_span(XSc1$e, "2020-01-01", plotEnd),
   `S7a: Wechselkursziel`              = ts_span(XSc7a$e, "2020-01-01", plotEnd),
   `S7b: Wechselkurs- und höheres Inflationsziel`   = ts_span(XSc7b$e, "2020-01-01", plotEnd),
   title = "Nomineller Wechselkurs (Index, Dez. 2000 = 100)"
@@ -429,7 +429,7 @@ ggsave(filename = "../Resultate/WechselkursPeg_T.png", width = figWdth, height =
 # S7 Wechselkursziel Zins
 p <- ts_ggplot(
   `Historie`                      = ts_span(SRCH, plotStart),
-  `S1: Status Quo`                    = ts_span(XSc1$i, "2020-01-01", plotEnd),
+  `S1: Basisszenario`                    = ts_span(XSc1$i, "2020-01-01", plotEnd),
   `S7a: Wechselkursziel`              = ts_span(XSc7a$i, "2020-01-01", plotEnd),
   `S7b: Wechselkurs- und höheres Inflationsziel`   = ts_span(XSc7b$i, "2020-01-01", plotEnd),
   title = "Kurzfristzinsen Schweiz (In %)"
@@ -447,7 +447,7 @@ ggsave(filename = "../Resultate/ZinsPeg_T.png", width = figWdth, height = figHei
 # S8 Forward Guidance Wechselkurs
 p <- ts_ggplot(
   `Historie`                  = ts_span(NEURR, plotStart),
-  `S1: Status Quo`            = ts_span(XSc1$e, "2020-01-01", plotEnd),
+  `S1: Basisszenario`            = ts_span(XSc1$e, "2020-01-01", plotEnd),
   `S8a: -0.75% für 5 Jahre`   = ts_span(XSc8a$e, "2020-01-01", plotEnd),
   `S8b: 0% für 5 Jahre`       = ts_span(XSc8b$e, "2020-01-01", plotEnd),
   title = "Nomineller Wechselkurs (Index, Dez. 2000 = 100)"
@@ -465,7 +465,7 @@ ggsave(filename = "../Resultate/WechselkursForwardG_T.png", width = figWdth, hei
 # S8 Forward Guidance Zins
 p <- ts_ggplot(
   `Historie` = ts_span(SRCH, plotStart),
-  `S1: Status Quo`            = ts_span(XSc1$i, "2020-01-01", plotEnd),
+  `S1: Basisszenario`            = ts_span(XSc1$i, "2020-01-01", plotEnd),
   `S8a: -0.75% für 5 Jahre`   = ts_span(XSc8a$i, "2020-01-01", plotEnd),
   `S8b: 0% für 5 Jahre`       = ts_span(XSc8b$i, "2020-01-01", plotEnd),
   title = "Kurzfristzinsen Schweiz (In %)"
@@ -483,7 +483,7 @@ ggsave(filename = "../Resultate/ZinsForwardG_T.png", width = figWdth, height = f
 # S9 Inflationsziel Wechselkurs
 p <- ts_ggplot(
   `Historie`                      = ts_span(NEURR, plotStart),
-  `S1: Status Quo`                = ts_span(XSc1$e, "2020-01-01", plotEnd),
+  `S1: Basisszenario`                = ts_span(XSc1$e, "2020-01-01", plotEnd),
   `S9a: Temporär höheres Ziel`     = ts_span(XSc9a$e, "2020-01-01", plotEnd),
   `S9b: Temporär höheres Ziel und Ausstieg`   = ts_span(XSc9b$e, "2020-01-01", plotEnd),
   `S9c: Permanent höheres Ziel`   = ts_span(XSc9c$e, "2020-01-01", plotEnd),
@@ -503,7 +503,7 @@ ggsave(filename = "../Resultate/WechselkursPi_T.png", width = figWdth, height = 
 # S9 Inflationsziel Zins
 p <- ts_ggplot(
   `Historie`                      = ts_span(SRCH, plotStart),
-  `S1: Status Quo`                = ts_span(XSc1$i, "2020-01-01", plotEnd),
+  `S1: Basisszenario`                = ts_span(XSc1$i, "2020-01-01", plotEnd),
   `S9a: Temporär höheres Ziel`     = ts_span(XSc9a$i, "2020-01-01", plotEnd),
   `S9b: Temporär höheres Ziel und Ausstieg`   = ts_span(XSc9b$i, "2020-01-01", plotEnd),
   `S9c: Permanent höheres Ziel`   = ts_span(XSc9c$i, "2020-01-01", plotEnd),

@@ -148,7 +148,7 @@ p <- ts_ggplot(
   `Kurzfristzinsen Deutschland` = ExoData$SRGE,
   `Szenario Schweiz` = XSc1$SRCH,
   `Szenario Deutschland` = XSc1$SRGE,
-  title = "Szenario 1: Status Quo"
+  title = "S1: Basisszenario"
   )
 # brewer.pal(n = 8, name = "Dark2")
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -169,7 +169,7 @@ p <- ts_ggplot(
   `Kurzfristzinsen Deutschland` = ExoData$SRGE,
   `Szenario Schweiz` = XSc2$SRCH,
   `Szenario Deutschland` = XSc2$SRGE,
-  title = "Szenario 2: SNB sofortiger Ausstieg"
+  title = "S2: Sofortiger Ausstieg SNB"
 )
 # brewer.pal(n = 8, name = "Dark2")
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -190,7 +190,7 @@ p <- ts_ggplot(
   `Kurzfristzinsen Deutschland` = ExoData$SRGE,
   `Szenario Schweiz` = XSc3$SRCH,
   `Szenario Deutschland` = XSc3$SRGE,
-  title = "Szenario 3: SNB gradueller Ausstieg"
+  title = "S3: Gradueller Ausstieg SNB"
 )
 # brewer.pal(n = 8, name = "Dark2")
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -211,7 +211,7 @@ p <- ts_ggplot(
   `Kurzfristzinsen Deutschland` = ExoData$SRGE,
   `Szenario Schweiz` = XSc4$SRCH,
   `Szenario Deutschland` = XSc4$SRGE,
-  title = "Szenario 4: EZB gradueller Ausstieg"
+  title = "S4: Gradueller Ausstieg SNB"
 )
 # brewer.pal(n = 8, name = "Dark2")
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -232,7 +232,7 @@ p <- ts_ggplot(
   `Kurzfristzinsen Deutschland` = ExoData$SRGE,
   `Szenario Schweiz` = XSc5$SRCH,
   `Szenario Deutschland` = XSc5$SRGE,
-  title = "Szenario 5: EZB Zinssenkung ohne SNB Reaktion"
+  title = "S5: Zinssenkung EZB ohne Reaktion SNB"
 )
 # brewer.pal(n = 8, name = "Dark2")
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -253,7 +253,7 @@ p <- ts_ggplot(
   `Kurzfristzinsen Deutschland` = ExoData$SRGE,
   `Szenario Schweiz` = XSc6$SRCH,
   `Szenario Deutschland` = XSc6$SRGE,
-  title = "Szenario 6: EZB Zinssenkung mit SNB Reaktion"
+  title = "S6: Zinssenkung EZB mit Reaktion SNB"
 )
 # brewer.pal(n = 8, name = "Dark2")
 p <- p + theme_minimal() + ylab("")+xlab("")+
