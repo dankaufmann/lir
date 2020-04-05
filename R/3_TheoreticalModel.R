@@ -306,7 +306,7 @@ SRGE  <- ts_frequency(SRGE, to = "year", aggregate = "mean")
 # S1, S2, S3 Wechselkurs
 p <- ts_ggplot(
   `Historie`                      = ts_span(NEURR, plotStart),
-  `S1: Basisszenario`                = ts_span(XSc1$e, "2020-01-01", plotEnd),
+  `S1: Basisszenario`             = ts_span(XSc1$e, "2020-01-01", plotEnd),
   `S2: Sofortiger Ausstieg SNB`   = ts_span(XSc2$e, "2020-01-01", plotEnd),
   `S3: Gradueller Ausstieg SNB`   = ts_span(XSc3$e, "2020-01-01", plotEnd),
   title = "Nomineller Wechselkurs (Index, Dez. 2000 = 100)"
@@ -342,8 +342,8 @@ ggsave(filename = "../Resultate/ZinsS1-3_T.png", width = figWdth, height = figHe
 # S1, S4 Wechselkurs
 p <- ts_ggplot(
   `Historie`                      = ts_span(NEURR, plotStart),
-  `S1: Status Quo`                = ts_span(XSc1$e, "2020-01-01", plotEnd),
-  `S4: EZB gradueller Ausstieg`   = ts_span(XSc4$e, "2020-01-01", plotEnd),
+  `S1: Basisszenario`                = ts_span(XSc1$e, "2020-01-01", plotEnd),
+  `S4: Gradueller Ausstieg EZB`   = ts_span(XSc4$e, "2020-01-01", plotEnd),
   title = "Nomineller Wechselkurs (Index, Dez. 2000 = 100)"
 )
 p <- p + theme_minimal() + ylab("")+xlab("")+
@@ -520,6 +520,13 @@ p
 ggsave(filename = "../Resultate/ZinsPi_T.pdf", width = figWdth, height = figHeight)
 ggsave(filename = "../Resultate/ZinsPi_T.png", width = figWdth, height = figHeight)
 
+
+# Show how much Swiss franc appreciates relative to base scenario
+print(100*(XSc2$e["2020-01-01"]/XSc1$e["2020-01-01"]-1))
+print(100*(XSc3$e["2020-01-01"]/XSc1$e["2020-01-01"]-1))
+print(100*(XSc4$e["2020-01-01"]/XSc1$e["2020-01-01"]-1))
+print(100*(XSc5$e["2020-01-01"]/XSc1$e["2020-01-01"]-1))
+print(100*(XSc6$e["2020-01-01"]/XSc1$e["2020-01-01"]-1))
 
 #-------------------------------------------------------------------------------------
 # END OF FILE
